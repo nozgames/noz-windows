@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 namespace NoZ.Platform.Windows {
-    internal class ComObject : IDisposable {
+    public class ComObject : IDisposable {
         public IntPtr Instance {
             get; private set;
         } 

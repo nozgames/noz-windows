@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using NoZ.Platform.OpenGL;
 
+#if false
 namespace NoZ.Platform.Windows {
     class WindowsGameWindow : GameWindow {
         private static readonly string ClassName = Assembly.GetExecutingAssembly().GetName().Name + "Class";
@@ -324,3 +324,4 @@ namespace NoZ.Platform.Windows {
         }
     }
 }
+#endif

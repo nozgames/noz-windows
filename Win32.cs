@@ -6,13 +6,8 @@ namespace NoZ.Platform.Windows {
     static class Win32 {
         private static class ExternDll {
             public const string User32 = "user32.dll";
-            public const string OpenGL32 = "opengl32.dll";
             public const string Gdi32 = "gdi32.dll";
             public const string Kernel32 = "kernel32.dll";
-        }
-
-        static Win32() {
-            Win32.LoadLibrary(ExternDll.OpenGL32);
         }
 
         public delegate IntPtr WndProc(IntPtr hWnd, WindowMessage msg, uint wParam, uint lParam);
@@ -208,65 +203,6 @@ namespace NoZ.Platform.Windows {
             ForceMinimize = 11
         }
 
-        [Flags]
-        internal enum PixelFormatDescriptorFlags : int {
-            // PixelFormatDescriptor flags
-            DOUBLEBUFFER = 0x01,
-            STEREO = 0x02,
-            DRAW_TO_WINDOW = 0x04,
-            DRAW_TO_BITMAP = 0x08,
-            SUPPORT_GDI = 0x10,
-            SUPPORT_OPENGL = 0x20,
-            GENERIC_FORMAT = 0x40,
-            NEED_PALETTE = 0x80,
-            NEED_SYSTEM_PALETTE = 0x100,
-            SWAP_EXCHANGE = 0x200,
-            SWAP_COPY = 0x400,
-            SWAP_LAYER_BUFFERS = 0x800,
-            GENERIC_ACCELERATED = 0x1000,
-            SUPPORT_DIRECTDRAW = 0x2000,
-            SUPPORT_COMPOSITION = 0x8000,
-
-            // PixelFormatDescriptor flags for use in ChoosePixelFormat only
-            DEPTH_DONTCARE = unchecked((int)0x20000000),
-            DOUBLEBUFFER_DONTCARE = unchecked((int)0x40000000),
-            STEREO_DONTCARE = unchecked((int)0x80000000)
-        }
-        internal enum PixelType : byte {
-            Rgba = 0,
-            Indexed = 1
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct PixelFormatDescriptor {
-            internal short Size;
-            internal short Version;
-            internal PixelFormatDescriptorFlags Flags;
-            internal PixelType PixelType;
-            internal byte ColorBits;
-            internal byte RedBits;
-            internal byte RedShift;
-            internal byte GreenBits;
-            internal byte GreenShift;
-            internal byte BlueBits;
-            internal byte BlueShift;
-            internal byte AlphaBits;
-            internal byte AlphaShift;
-            internal byte AccumBits;
-            internal byte AccumRedBits;
-            internal byte AccumGreenBits;
-            internal byte AccumBlueBits;
-            internal byte AccumAlphaBits;
-            internal byte DepthBits;
-            internal byte StencilBits;
-            internal byte AuxBuffers;
-            internal byte LayerType;
-            private byte Reserved;
-            internal int LayerMask;
-            internal int VisibleMask;
-            internal int DamageMask;
-        }
-
         public static ushort LOWORD(uint v) { return ((ushort)((v) & 0xffff)); }
         public static ushort HIWORD(uint v) { return ((ushort)(((v) >> 16) & 0xffff)); }
         public static int GET_X_LPARAM(uint lparam) { return (short)LOWORD(lparam); }
@@ -355,28 +291,6 @@ namespace NoZ.Platform.Windows {
         [SuppressUnmanagedCodeSecurity]
         [DllImport(ExternDll.User32, SetLastError = true)]
         internal extern static bool GetWindowRect(IntPtr hwnd, out RECT windowRectangle);
-
-        [DllImport(ExternDll.OpenGL32, EntryPoint="wglChoosePixelFormat", ExactSpelling=true, SetLastError=true)]
-        internal extern static unsafe int ChoosePixelFormat(IntPtr hdc, ref PixelFormatDescriptor ppfd);
-
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(ExternDll.OpenGL32, EntryPoint="wglCreateContext", ExactSpelling=true, SetLastError=true)]
-        internal extern static IntPtr CreateContext(IntPtr hDc);
-
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(ExternDll.OpenGL32, EntryPoint="wglMakeCurrent", ExactSpelling=true, SetLastError=true)]
-        internal extern static bool MakeCurrent(IntPtr hDc, IntPtr newContext);
-
-        [DllImport(ExternDll.OpenGL32, EntryPoint="wglSwapBuffers", ExactSpelling = true, SetLastError = true)]
-        internal extern static bool SwapBuffers(IntPtr hdc);
-
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(ExternDll.OpenGL32, CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        public static extern IntPtr wglGetProcAddress(string functionName);
-
-        [DllImport(ExternDll.Gdi32, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SetPixelFormat(IntPtr dc, int format, ref PixelFormatDescriptor pfd);
 
         [DllImport(ExternDll.Kernel32, SetLastError = true)]
         internal static extern IntPtr LoadLibrary(string dllName);
