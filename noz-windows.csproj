@@ -81,7 +81,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\blockbrain\libs\noz\noz.csproj">
+    <ProjectReference Include="..\noz\noz.csproj">
       <Project>{8e590f57-0fc4-46be-a0d1-1ea5d7c18754}</Project>
       <Name>noz</Name>
     </ProjectReference>
