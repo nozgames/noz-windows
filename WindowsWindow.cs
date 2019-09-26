@@ -166,6 +166,7 @@ namespace NoZ.Platform.Windows
             virtualKeyToKeyCode[(int)Win32.VirtualKey.OemComma] = KeyCode.Comma;
             virtualKeyToKeyCode[(int)Win32.VirtualKey.OemPeriod] = KeyCode.Period;
             virtualKeyToKeyCode[(int)Win32.VirtualKey.Return] = KeyCode.Enter;
+            virtualKeyToKeyCode[(int)Win32.VirtualKey.Escape] = KeyCode.Escape;
 
             // Initialize the character to keycode mapping
             for (int i = 'A'; i <= 'Z'; i++)

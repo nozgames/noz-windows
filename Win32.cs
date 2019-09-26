@@ -67,7 +67,8 @@ namespace NoZ.Platform.Windows {
             End = 0x23,
             Delete = 0x2E,
             OemComma = 0xBC,
-            OemPeriod = 0xBE
+            OemPeriod = 0xBE,
+            Escape = 0x1B
         }
 
         [Flags]
