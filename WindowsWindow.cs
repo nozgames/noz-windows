@@ -27,28 +27,31 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-using NoZ;
-using NoZ.Graphics;
+using NoZ.Platform.OpenGL;
 
 namespace NoZ.Platform.Windows
 {
-    public class WindowsWindow : NoZ.Window
+    public class WindowsWindow : IWindowDriver
     {
+        /// <summary>
+        /// Interial window class used to create window
+        /// </summary>
         private static string ClassName = Assembly.GetEntryAssembly().GetName().Name + "Class";
 
         private IntPtr _hdc;
         private IntPtr _hwnd;
+        private IntPtr _hglrc;
         private Win32.SIZE _clientSize;
         private Win32.WNDCLASSEX _wcex;
         private Stopwatch _stopwatch;
         private Stopwatch _stopwatch2;
         private string _title;
-        //private Cursor _cursor;
 
-        public override Vector2Int Size => new Vector2Int(_clientSize.cx, _clientSize.cy);
+        public Vector2Int Size => new Vector2Int(_clientSize.cx, _clientSize.cy);
 
-        public override IntPtr GetNativeHandle() => _hwnd;
-
+        /// <summary>
+        /// Title of the window
+        /// </summary>
         public string Title {
             get => _title;
             set {
@@ -57,8 +60,10 @@ namespace NoZ.Platform.Windows
             }
         }
 
-        public WindowsWindow()
+        public WindowsWindow(string title)
         {
+            _title = title;
+
             _wcex = new Win32.WNDCLASSEX();
             _wcex.style = Win32.ClassStyles.OwnDC;
             _wcex.cbSize = (uint)Marshal.SizeOf(_wcex);
@@ -92,6 +97,55 @@ namespace NoZ.Platform.Windows
             Win32.RECT clientRect = new Win32.RECT();
             Win32.GetClientRect(_hwnd, out clientRect);
             _clientSize = new Win32.SIZE(clientRect.right - clientRect.left, clientRect.bottom - clientRect.top);
+
+            // Use Opengl
+            Graphics.Driver = OpenGLDriver.Create();
+
+            // Set the pixel format for this DC
+            var pfd = new GL.Win32.PixelFormatDescriptor
+            {
+                Size = (short)Marshal.SizeOf<GL.Win32.PixelFormatDescriptor>(),
+                Version = 1,
+                Flags = GL.Win32.PixelFormatDescriptorFlags.DRAW_TO_WINDOW |
+                        GL.Win32.PixelFormatDescriptorFlags.SUPPORT_OPENGL |
+                        GL.Win32.PixelFormatDescriptorFlags.DOUBLEBUFFER,
+                PixelType = GL.Win32.PixelType.Rgba,
+                ColorBits = 32,
+                RedBits = 0,
+                RedShift = 0,
+                GreenBits = 0,
+                GreenShift = 0,
+                BlueBits = 0,
+                BlueShift = 0,
+                AlphaBits = 0,
+                AlphaShift = 0,
+                AccumBits = 0,
+                AccumRedBits = 0,
+                AccumGreenBits = 0,
+                AccumBlueBits = 0,
+                AccumAlphaBits = 0,
+                DepthBits = 32,
+                StencilBits = 8,
+                AuxBuffers = 0,
+                LayerType = 0,
+                LayerMask = 0,
+                DamageMask = 0
+            };
+
+            _hdc = Win32.GetDC(_hwnd);
+            var id = GL.Win32.wglChoosePixelFormat(_hdc, ref pfd);
+            GL.Win32.SetPixelFormat(_hdc, id, ref pfd);
+            _hglrc = GL.Win32.wglCreateContext(_hdc);
+            GL.Win32.wglMakeCurrent(_hdc, _hglrc);
+        }
+
+        public void DrawBegin()
+        {
+        }
+
+        public void DrawEnd()
+        {
+            GL.Win32.wglSwapBuffers(_hdc);
         }
 
         /// <summary>
@@ -99,40 +153,8 @@ namespace NoZ.Platform.Windows
         /// </summary>
         public void Show()
         {
-            Graphics.Bind(this);
-
             Win32.ShowWindow(_hwnd, Win32.ShowWindowCommand.ShowNormal);
-
-            // Main message loop:
-            Win32.MSG msg = new Win32.MSG();
-
-            try
-            {
-                bool done = false;
-                while (!done)
-                {
-                    while (Win32.PeekMessage(out msg, IntPtr.Zero, 0, 0, 0x0001) > 0)
-                    {
-                        if (msg.message == (int)Win32.WindowMessage.Quit)
-                        {
-                            done = true;
-                            break;
-                        }
-
-                        Win32.TranslateMessage(ref msg);
-                        Win32.DispatchMessage(ref msg);
-                    }
-
-                    Frame();
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
-            }
         }
-
 
         private static readonly KeyCode[] virtualKeyToKeyCode;
         private static readonly KeyCode[] charToKeyCode;
@@ -234,31 +256,31 @@ namespace NoZ.Platform.Windows
 
                 case Win32.WindowMessage.LButtonDown:
                 {
-                    MouseButtonDownEvent.Broadcast(MouseButton.Left);
+                    Window.MouseButtonDownEvent.Broadcast(MouseButton.Left);
                     break;
                 }
 
                 case Win32.WindowMessage.LButtonUp:
                 {
-                    MouseButtonUpEvent.Broadcast(MouseButton.Left);
+                    Window.MouseButtonUpEvent.Broadcast(MouseButton.Left);
                     break;
                 }
 
                 case Win32.WindowMessage.RButtonDown:
                 {
-                    MouseButtonDownEvent.Broadcast(MouseButton.Right);
+                    Window.MouseButtonDownEvent.Broadcast(MouseButton.Right);
                     break;
                 }
 
                 case Win32.WindowMessage.RButtonUp:
                 {
-                    MouseButtonUpEvent.Broadcast(MouseButton.Right);
+                    Window.MouseButtonUpEvent.Broadcast(MouseButton.Right);
                     break;
                 }
 
                 case Win32.WindowMessage.MouseMove:
                 {
-                    MouseMoveEvent.Broadcast(new Vector2(Win32.GET_X_LPARAM(lparam), Win32.GET_Y_LPARAM(lparam)));
+                    Window.MouseMoveEvent.Broadcast(new Vector2(Win32.GET_X_LPARAM(lparam), Win32.GET_Y_LPARAM(lparam)));
                     break;
                 }
 
@@ -271,14 +293,14 @@ namespace NoZ.Platform.Windows
                 case Win32.WindowMessage.SysKeyDown:
                 case Win32.WindowMessage.KeyDown:
                 {
-                    KeyDownEvent.Broadcast(GetKeyCode((byte)wparam));
+                    Window.KeyDownEvent.Broadcast(GetKeyCode((byte)wparam));
                     break;
                 }
 
                 case Win32.WindowMessage.SysKeyUp:
                 case Win32.WindowMessage.KeyUp:
                 {
-                    KeyUpEvent.Broadcast(GetKeyCode((byte)wparam));
+                    Window.KeyUpEvent.Broadcast(GetKeyCode((byte)wparam));
                     break;
                 }
 
@@ -297,7 +319,7 @@ namespace NoZ.Platform.Windows
                 case Win32.WindowMessage.Activate:
                 {
                     if (wparam == 1)
-                        Graphics?.Bind(this);
+                        GL.Win32.wglMakeCurrent(_hdc, _hglrc);
                     break;
                 }
 

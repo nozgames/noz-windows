@@ -54,9 +54,15 @@
     <Compile Include="ComObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Win32.cs" />
+    <Compile Include="WindowsApplication.cs" />
     <Compile Include="WindowsCursor.cs" />
     <Compile Include="WindowsGameWindow.cs" />
     <Compile Include="WindowsWindow.cs" />
+    <Compile Include="XAudio2.cs" />
+    <Compile Include="XAudio2Buffer.cs" />
+    <Compile Include="XAudio2Clip.cs" />
+    <Compile Include="XAudio2MasteringVoice.cs" />
+    <Compile Include="XAudio2SourceVoice.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -81,6 +87,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\noz-opengl\noz-opengl.csproj">
+      <Project>{22bcf091-6ba1-42ac-91fa-97b937ce80d8}</Project>
+      <Name>noz-opengl</Name>
+    </ProjectReference>
     <ProjectReference Include="..\noz\noz.csproj">
       <Project>{8e590f57-0fc4-46be-a0d1-1ea5d7c18754}</Project>
       <Name>noz</Name>
