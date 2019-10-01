@@ -87,10 +87,10 @@ namespace NoZ.Platform.Windows
             //                style &= ~Win32.WindowStyles.ThickFrame;
 
             _hwnd = Win32.CreateWindowEx(0, ClassName, _title, (uint)style,
-                            100, 100, 800, 600, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                            100, 100, 1280, 1024, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
 
             //if (context.WindowSize.x > 0 && context.WindowSize.y > 0)
-            //Resize(context.WindowSize);
+            Resize(new Vector2Int(1280, 1024));
 
             _hdc = Win32.GetDC(_hwnd);
 
@@ -209,6 +209,21 @@ namespace NoZ.Platform.Windows
 
         private static KeyCode GetKeyCode(char c) => charToKeyCode[c];
         private static KeyCode GetKeyCode(byte virtualKey) => virtualKeyToKeyCode[virtualKey];
+
+        public void Resize (in Vector2Int size)
+        {
+            Win32.GetWindowRect(_hwnd, out var windowRect);
+            Win32.GetClientRect(_hwnd, out var clientRect);
+
+            Win32.MoveWindow(
+                _hwnd,
+                windowRect.left,
+                windowRect.top,
+                ((windowRect.right - windowRect.left) - (clientRect.right - clientRect.left)) + size.x,
+                ((windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top)) + size.y,
+                true
+                );
+        }
 
         private IntPtr WndProc(IntPtr hwnd, Win32.WindowMessage message, uint wparam, uint lparam)
         {
