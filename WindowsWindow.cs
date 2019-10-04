@@ -46,8 +46,16 @@ namespace NoZ.Platform.Windows
         private Stopwatch _stopwatch;
         private Stopwatch _stopwatch2;
         private string _title;
+        private bool _cursorVisible = true;
 
         public Vector2Int Size => new Vector2Int(_clientSize.cx, _clientSize.cy);
+
+        public bool IsCursorVisible {
+            get => _cursorVisible;
+            set {
+                _cursorVisible = value;                
+            }
+        }
 
         /// <summary>
         /// Title of the window
@@ -367,19 +375,18 @@ namespace NoZ.Platform.Windows
                     break;
                 }
 
-#if false
                 case Win32.WindowMessage.SetCursor:
-                    return IntPtr.Zero;
-
-                {
-                    if (_cursor != null)
+                    if (!_cursorVisible)
                     {
-                        Win32.SetCursor(((WindowsCursor)_cursor).Handle);
-                        return (IntPtr)1;
+                        Win32.GetCursorPos(out var point);
+                        Win32.ScreenToClient(_hwnd, out point);
+                        if (point.X >= 0 && point.Y >= 0 && point.X < _clientSize.cx && point.Y < _clientSize.cy)
+                        {
+                            Win32.SetCursor(IntPtr.Zero);
+                            return (IntPtr)1;
+                        }
                     }
                     break;
-                }
-#endif
 
                 case Win32.WindowMessage.Activate:
                 {
