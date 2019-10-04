@@ -48,7 +48,11 @@ namespace NoZ.Platform.Windows {
             KeyDown = 0x100,
             KeyUp = 0x101,
             SetCursor = 0x20,
-            Activate = 0x06
+            Activate = 0x06,
+            NonClientHitTest = 0x84,
+            NonClientDrawCaption = 0xAE,
+            GetIcon = 0x7F,
+            SetText = 0x0C
         }
 
         public enum VirtualKey : byte {
@@ -301,6 +305,12 @@ namespace NoZ.Platform.Windows {
 
         [DllImport(ExternDll.User32, SetLastError = true, CharSet = CharSet.Ansi)]
         internal static extern bool SetWindowText(IntPtr hWnd, string lpString);
+
+        [DllImport(ExternDll.User32)]
+        public static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport(ExternDll.User32)]
+        public static extern bool ScreenToClient(IntPtr hwnd, out POINT lpPoint);
 
         [SecurityCritical]
         [SuppressUnmanagedCodeSecurity]

@@ -64,7 +64,14 @@ namespace NoZ.Platform.Windows
                         Win32.DispatchMessage(ref msg);
                     }
 
+                    // Rather than using WM_MOUSEMOVE we just get the cursor after all events messages
+                    // have been processed and create a single event for it.
+                    Win32.GetCursorPos(out var point);
+                    Win32.ScreenToClient(window._hwnd, out point);
+                    Window.MouseMoveEvent.Broadcast(new Vector2(point.X, point.Y));
+
                     Application.Step();
+
                 }
             }
             catch (Exception e)

@@ -39,7 +39,7 @@ namespace NoZ.Platform.Windows
         private static string ClassName = Assembly.GetEntryAssembly().GetName().Name + "Class";
 
         private IntPtr _hdc;
-        private IntPtr _hwnd;
+        internal IntPtr _hwnd;
         private IntPtr _hglrc;
         private Win32.SIZE _clientSize;
         private Win32.WNDCLASSEX _wcex;
@@ -137,15 +137,58 @@ namespace NoZ.Platform.Windows
             GL.Win32.SetPixelFormat(_hdc, id, ref pfd);
             _hglrc = GL.Win32.wglCreateContext(_hdc);
             GL.Win32.wglMakeCurrent(_hdc, _hglrc);
+
+            // Disable V-Sync ?
+            GL.Imports.wglSwapIntervalEXT(0);
         }
 
         public void DrawBegin()
         {
+            _stopwatch.Start();
+            _stopwatch2.Restart();
         }
+
+        private int frameCount = 0;
+        private double minElapsed = 0;
+        private double maxElapsed = 0;
+        private double avgElapsed = 0;
 
         public void DrawEnd()
         {
+            //GL.Finish();
             GL.Win32.wglSwapBuffers(_hdc);
+
+            _stopwatch2.Stop();
+
+            if (_stopwatch.ElapsedMilliseconds > 1000)
+            {
+                _stopwatch.Stop();
+
+                var lastFPS = (((double)frameCount) / (avgElapsed / 1000.0));
+
+                avgElapsed = avgElapsed / frameCount;
+
+#if false
+                if (lastFPS >= 1000)
+                    Win32.SetWindowText(_hwnd, $"${_title} (1000+ FPS  {minElapsed:0.00}ms < {avgElapsed:0.00}ms < {maxElapsed:0.00}ms");
+                else
+                    Win32.SetWindowText(_hwnd, $"${_title} ({(int)lastFPS} FPS  {minElapsed:0.00}ms < {avgElapsed:0.00}ms < {maxElapsed:0.00}ms");
+#endif
+
+                _stopwatch.Restart();
+                frameCount = 0;
+                minElapsed = 100000;
+                maxElapsed = 0;
+                avgElapsed = 0;
+            }
+            else
+            {
+
+                frameCount++;
+                minElapsed = Math.Min(minElapsed, _stopwatch2.Elapsed.TotalMilliseconds);
+                maxElapsed = Math.Max(maxElapsed, _stopwatch2.Elapsed.TotalMilliseconds);
+                avgElapsed += _stopwatch2.Elapsed.TotalMilliseconds;
+            }
         }
 
         /// <summary>
@@ -229,6 +272,7 @@ namespace NoZ.Platform.Windows
         {
             switch (message)
             {
+/*
                 case Win32.WindowMessage.Paint:
                 {
                     Win32.PAINTSTRUCT ps = new Win32.PAINTSTRUCT();
@@ -236,11 +280,11 @@ namespace NoZ.Platform.Windows
                     Win32.EndPaint(hwnd, ref ps);
                     return IntPtr.Zero;
                 }
-
                 case Win32.WindowMessage.EraseBackground:
                 {
                     return IntPtr.Zero;
                 }
+*/
 
                 case Win32.WindowMessage.Destroy:
                 {
@@ -293,11 +337,15 @@ namespace NoZ.Platform.Windows
                     break;
                 }
 
+#if false
                 case Win32.WindowMessage.MouseMove:
                 {
-                    Window.MouseMoveEvent.Broadcast(new Vector2(Win32.GET_X_LPARAM(lparam), Win32.GET_Y_LPARAM(lparam)));
-                    break;
+                    //Window.MouseMoveEvent.Broadcast(new Vector2(Win32.GET_X_LPARAM(lparam), Win32.GET_Y_LPARAM(lparam)));
+                    return IntPtr.Zero;
                 }
+                case Win32.WindowMessage.NonClientHitTest:
+                    return IntPtr.Zero;
+#endif
 
                 case Win32.WindowMessage.MouseWheel:
                 {
@@ -321,6 +369,8 @@ namespace NoZ.Platform.Windows
 
 #if false
                 case Win32.WindowMessage.SetCursor:
+                    return IntPtr.Zero;
+
                 {
                     if (_cursor != null)
                     {
