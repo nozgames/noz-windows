@@ -28,6 +28,11 @@ namespace NoZ.Platform.Windows
 {
     public static class WindowsApplication 
     {
+        public static void Exit()
+        {
+            Win32.PostQuitMessage(0);
+        }
+
         public static void Run (string title, ApplicationDelegate applicationDelegate)
         {
             Application.Initialize(applicationDelegate);
